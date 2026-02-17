@@ -7,7 +7,6 @@ export default function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // Handle preflight request
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -16,29 +15,53 @@ export default function handler(req, res) {
     res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate");
 
     const { query } = parse(req.url, true);
-    const id = query.id;
+    const { id, createdBy } = query;
 
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide an id"
+    // If id is provided, return a single bid
+    if (id) {
+      const numericId = Number(id);
+      const bid = bids.find(b => b.id === numericId);
+
+      if (!bid) {
+        return res.status(404).json({
+          success: false,
+          message: "Bid not found"
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: bid
       });
     }
 
-    const numericId = Number(id);
-    const bid = bids.find(b => b.id === numericId);
+    // If createdBy is provided, filter by name (case-insensitive)
+    if (createdBy) {
+      const filtered = bids.filter(b =>
+        b.createdBy.toLowerCase().includes(createdBy.toLowerCase())
+      );
 
-    if (!bid) {
-      return res.status(404).json({
-        success: false,
-        message: "Bid not found"
+      if (filtered.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No bids found for the given name"
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        count: filtered.length,
+        data: filtered
       });
     }
 
+    // No filters — return all bids
     return res.status(200).json({
       success: true,
-      data: bid
+      count: bids.length,
+      data: bids
     });
+
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false, error: err.message });
