@@ -36,10 +36,11 @@ export default function handler(req, res) {
     });
   }
 
-  // Start with all bids or filter by createdBy
+  // Start with all bids
   let result = [...bids];
 
-  if (createdBy) {
+  // Filter by createdBy - ONLY if it has a non-empty value
+  if (createdBy && createdBy.trim() !== '') {
     result = result.filter(b =>
       b.createdBy.toLowerCase().includes(createdBy.toLowerCase())
     );
@@ -52,11 +53,13 @@ export default function handler(req, res) {
     }
   }
 
-  // Sort by startDate if sortBy is provided
-  if (sortBy === 'asc') {
-    result.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-  } else if (sortBy === 'desc') {
-    result.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+  // Sort by startDate - ONLY if sortBy has a non-empty value
+  if (sortBy && sortBy.trim() !== '') {
+    if (sortBy === 'asc') {
+      result.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    } else if (sortBy === 'desc') {
+      result.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+    }
   }
 
   return res.status(200).json({

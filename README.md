@@ -31,3 +31,12 @@ This API is:
 - Serverless
 - Safe for 300 students
 - No database required
+
+
+
+
+Inspect: https://vercel.com/saifullah-js-projects/edtech-exam-api/G1CkmRTzauFzkW17Peo8f5LLdAVD [4s]
+
+Production: https://edtech-exam-gt4wyu5hw-saifullah-js-projects.vercel.app [17s]
+
+Aliased: https://edtech-exam-api.vercel.app [17s]
