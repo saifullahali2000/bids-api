@@ -1,5 +1,4 @@
 import { bids } from "./_data.js";
-import { parse } from "url";
 
 export default function handler(req, res) {
   // CORS headers
@@ -14,8 +13,10 @@ export default function handler(req, res) {
   try {
     res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate");
 
-    const { query } = parse(req.url, true);
-    const { id, createdBy } = query;
+    const query = { ...req.query };
+    const id = query.id;
+    const createdBy = query.createdBy;
+    const sortBy = query.sortBy;
 
     // If id is provided, return a single bid
     if (id) {
@@ -35,31 +36,33 @@ export default function handler(req, res) {
       });
     }
 
-    // If createdBy is provided, filter by name (case-insensitive)
+    // Start with all bids or filter by createdBy
+    let result = [...bids];
+
     if (createdBy) {
-      const filtered = bids.filter(b =>
+      result = result.filter(b =>
         b.createdBy.toLowerCase().includes(createdBy.toLowerCase())
       );
 
-      if (filtered.length === 0) {
+      if (result.length === 0) {
         return res.status(404).json({
           success: false,
           message: "No bids found for the given name"
         });
       }
-
-      return res.status(200).json({
-        success: true,
-        count: filtered.length,
-        data: filtered
-      });
     }
 
-    // No filters — return all bids
+    // Sort by startDate if sortBy is provided
+    if (sortBy === 'asc') {
+      result.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    } else if (sortBy === 'desc') {
+      result.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+    }
+
     return res.status(200).json({
       success: true,
-      count: bids.length,
-      data: bids
+      count: result.length,
+      data: result
     });
 
   } catch (err) {
